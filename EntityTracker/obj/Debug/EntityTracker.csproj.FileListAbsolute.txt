@@ -1,0 +1,13 @@
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.csproj.AssemblyReference.cache
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.AssemblyInfoInputs.cache
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.AssemblyInfo.cs
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.csproj.CoreCompileInputs.cache
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\bin\Debug\Mods\mod\modinfo.json
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\bin\Debug\Mods\mod\EntityTracker.deps.json
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\bin\Debug\Mods\mod\EntityTracker.dll
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\bin\Debug\Mods\mod\EntityTracker.pdb
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.dll
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\refint\EntityTracker.dll
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\EntityTracker.pdb
+C:\Users\trevo\OneDrive\Desktop\EntityTracker\EntityTracker\obj\Debug\ref\EntityTracker.dll

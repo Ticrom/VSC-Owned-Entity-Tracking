@@ -1,0 +1,12 @@
+{
+  "type": "code",
+  "modid": "entitytracker",
+  "name": "Entity Tracker",
+  "description": "Tracks owned entities with SQLite database and lookup commands",
+  "authors": ["Ticrom"],
+  "version": "1.0.0",
+  "side": "Server",
+  "requiredOnClient": false,
+  "requiredOnServer": false,
+  "dependencies": { "game": "1.21.0" }
+}
