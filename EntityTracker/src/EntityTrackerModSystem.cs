@@ -14,7 +14,6 @@ namespace EntityTracker
         private TrackerConfig config;
         private long tickId;
 
-        // Entity types we care about tracking
         private static readonly HashSet<string> TrackedEntityTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "sailboat", "boat", "raft",
@@ -33,6 +32,7 @@ namespace EntityTracker
             db = new TrackerDatabase(GamePaths.DataPath);
 
             api.Event.OnEntitySpawn += OnEntitySpawn;
+            api.Event.OnEntityLoaded += OnEntityLoaded;
             api.Event.OnEntityDespawn += OnEntityDespawn;
             api.Event.OnEntityDeath += OnEntityDeath;
 
@@ -48,6 +48,7 @@ namespace EntityTracker
             if (sapi != null)
             {
                 sapi.Event.OnEntitySpawn -= OnEntitySpawn;
+                sapi.Event.OnEntityLoaded -= OnEntityLoaded;
                 sapi.Event.OnEntityDespawn -= OnEntityDespawn;
                 sapi.Event.OnEntityDeath -= OnEntityDeath;
                 sapi.World.UnregisterGameTickListener(tickId);
@@ -93,14 +94,23 @@ namespace EntityTracker
                 return TextCommandResult.Success($"[EntityTracker] No tracked entities found for '{playerName}'.");
 
             var spawn = sapi.World.DefaultSpawnPosition;
-            string msg = $"[EntityTracker] Entities owned by '{results[0].OwnerName}' ({results.Count}):\n";
+            string msg = $"[EntityTracker] Entities for '{playerName}' ({results.Count}):\n";
             foreach (var e in results)
             {
                 int rx = (int)(e.X - spawn.X);
                 int ry = (int)e.Y;
                 int rz = (int)(e.Z - spawn.Z);
-                string loc = e.Status == "active" ? $"({rx}, {ry}, {rz})" : $"last seen ({rx}, {ry}, {rz})";
-                msg += $"  {e.EntityType} #{e.EntityId} - {e.Status} - {loc}\n";
+                string loc = $"({rx}, {ry}, {rz})";
+                string statusLabel = e.Status switch
+                {
+                    "active" => "active",
+                    "unloaded" => "unloaded, last at",
+                    "destroyed" => "DESTROYED, was at",
+                    "removed" => "REMOVED, was at",
+                    "untagged" => "UNTAGGED, was at",
+                    _ => e.Status + ", last at"
+                };
+                msg += $"  {e.EntityType} #{e.EntityId} - {statusLabel} {loc}\n";
             }
 
             return TextCommandResult.Success(msg.TrimEnd());
@@ -115,15 +125,47 @@ namespace EntityTracker
             TryTrackEntity(entity);
         }
 
+        private void OnEntityLoaded(Entity entity)
+        {
+            if (!IsTrackedType(entity)) return;
+
+            string ownerUid = GetOwnerUid(entity);
+            if (string.IsNullOrEmpty(ownerUid)) return;
+
+            string ownerName = ResolvePlayerName(ownerUid);
+            string entityType = entity.Code?.Path ?? "unknown";
+            var pos = entity.ServerPos;
+
+            // Re-activate if it was marked unloaded
+            db.Upsert(ownerUid, ownerName, entityType, entity.EntityId, pos.X, pos.Y, pos.Z);
+        }
+
         private void OnEntityDespawn(Entity entity, EntityDespawnData reason)
         {
             if (!IsTrackedType(entity)) return;
-            db.UpdateStatus(entity.EntityId, "despawned");
+
+            string status = reason?.Reason switch
+            {
+                EnumDespawnReason.Unload => "unloaded",
+                EnumDespawnReason.Death => "destroyed",
+                EnumDespawnReason.Combusted => "destroyed",
+                EnumDespawnReason.Removed => "removed",
+                EnumDespawnReason.Expire => "removed",
+                _ => "unloaded"
+            };
+
+            // Update position one last time before marking status
+            var pos = entity.ServerPos;
+            db.UpdatePosition(entity.EntityId, pos.X, pos.Y, pos.Z);
+            db.UpdateStatus(entity.EntityId, status);
         }
 
         private void OnEntityDeath(Entity entity, DamageSource damageSource)
         {
             if (!IsTrackedType(entity)) return;
+
+            var pos = entity.ServerPos;
+            db.UpdatePosition(entity.EntityId, pos.X, pos.Y, pos.Z);
             db.UpdateStatus(entity.EntityId, "destroyed");
         }
 
@@ -171,7 +213,7 @@ namespace EntityTracker
             foreach (var tracked in active)
             {
                 var entity = sapi.World.GetEntityById(tracked.EntityId);
-                if (entity == null) continue;
+                if (entity == null) continue; // Not loaded, skip
 
                 if (!entity.Alive)
                 {
@@ -179,8 +221,27 @@ namespace EntityTracker
                     continue;
                 }
 
-                var pos = entity.ServerPos;
-                db.UpdatePosition(tracked.EntityId, pos.X, pos.Y, pos.Z);
+                // Check if ownership was removed (tag taken off)
+                string currentOwner = GetOwnerUid(entity);
+                if (string.IsNullOrEmpty(currentOwner))
+                {
+                    db.UpdateStatus(tracked.EntityId, "untagged");
+                    continue;
+                }
+
+                // Check if ownership changed to a different player
+                if (currentOwner != tracked.OwnerUid)
+                {
+                    string newName = ResolvePlayerName(currentOwner);
+                    string entityType = entity.Code?.Path ?? "unknown";
+                    var pos = entity.ServerPos;
+                    db.Upsert(currentOwner, newName, entityType, tracked.EntityId, pos.X, pos.Y, pos.Z);
+                    continue;
+                }
+
+                // Normal position update
+                var epos = entity.ServerPos;
+                db.UpdatePosition(tracked.EntityId, epos.X, epos.Y, epos.Z);
             }
         }
 
