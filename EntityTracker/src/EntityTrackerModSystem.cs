@@ -11,6 +11,7 @@ namespace EntityTracker
     {
         private ICoreServerAPI sapi;
         private TrackerDatabase db;
+        private TrackerConfig config;
         private long tickId;
 
         // Entity types we care about tracking
@@ -26,18 +27,20 @@ namespace EntityTracker
         public override void StartServerSide(ICoreServerAPI api)
         {
             sapi = api;
+            config = api.LoadModConfig<TrackerConfig>("entitytracker.json") ?? new TrackerConfig();
+            api.StoreModConfig(config, "entitytracker.json");
+
             db = new TrackerDatabase(GamePaths.DataPath);
 
             api.Event.OnEntitySpawn += OnEntitySpawn;
             api.Event.OnEntityDespawn += OnEntityDespawn;
             api.Event.OnEntityDeath += OnEntityDeath;
 
-            // Periodic position update every 60 seconds
-            tickId = api.World.RegisterGameTickListener(OnPeriodicUpdate, 300000);
+            tickId = api.World.RegisterGameTickListener(OnPeriodicUpdate, config.UpdateIntervalSeconds * 1000);
 
             RegisterCommands(api);
 
-            api.Logger.Notification("[EntityTracker] Started.");
+            api.Logger.Notification($"[EntityTracker] Started. Privilege: {config.TrackCommandPrivilege}, Update interval: {config.UpdateIntervalSeconds}s");
         }
 
         public override void Dispose()
@@ -58,7 +61,7 @@ namespace EntityTracker
             var parsers = api.ChatCommands.Parsers;
 
             api.ChatCommands.Create("track")
-                .RequiresPrivilege(Privilege.chat)
+                .RequiresPrivilege(config.TrackCommandPrivilege)
                 .WithDescription("Look up tracked entities by player name. Usage: /track <playername>")
                 .WithArgs(parsers.Word("playername"))
                 .HandleWith(CmdLookup);
