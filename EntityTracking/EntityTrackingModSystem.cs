@@ -1,14 +1,16 @@
+﻿using Vintagestory.API.Common;
 using System;
 using System.Collections.Generic;
-using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace EntityTracker
+
+namespace EntityTracking;
+
+public class EntityTrackingModSystem : ModSystem
 {
-    public class EntityTrackerModSystem : ModSystem
-    {
+
         private ICoreServerAPI sapi;
         private TrackerDatabase db;
         private TrackerConfig config;
@@ -16,9 +18,9 @@ namespace EntityTracker
 
         private static readonly HashSet<string> TrackedEntityTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "sailboat", "boat", "raft",
+            "sailboat", "boat", "raft", "canoe",
             "wolf", "hyena", "aurochs", "moose", "bighorn",
-            "sawtooth", "tameddeer", "elk", "deer"
+            "sawtooth", "tameddeer", "elk", "deer","horse"
         };
 
         public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Server;
@@ -274,4 +276,4 @@ namespace EntityTracker
             return playerData?.LastKnownPlayername ?? "Unknown";
         }
     }
-}
+    
