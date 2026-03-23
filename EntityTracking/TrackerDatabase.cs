@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
 
-namespace EntityTracker
+namespace EntityTracking
 {
     public class TrackedEntity
     {

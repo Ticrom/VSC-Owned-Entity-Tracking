@@ -1,6 +1,6 @@
 {
   "type": "code",
-  "modid": "entitytracker",
+  "modid": "entitytracking",
   "name": "Entity Tracker",
   "description": "Tracks owned entities with SQLite database and lookup commands",
   "authors": ["Ticrom"],

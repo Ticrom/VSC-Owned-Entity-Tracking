@@ -1,4 +1,4 @@
-namespace EntityTracker
+namespace EntityTracking
 {
     public class TrackerConfig
     {
