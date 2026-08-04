@@ -3,10 +3,10 @@
   "modid": "entitytracking",
   "name": "Entity Tracker",
   "description": "Tracks owned entities with SQLite database and lookup commands",
-  "authors": ["Ticrom"],
-  "version": "1.2.0",
+  "authors": ["Ticrom", "Lady_Regna"],
+  "version": "1.2.2",
   "side": "Server",
   "requiredOnClient": false,
   "requiredOnServer": false,
-  "dependencies": { "game": "1.21.0" }
+  "dependencies": { "game": "1.22.6" }
 }
